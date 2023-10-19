@@ -1,13 +1,15 @@
 class CustomerTTHDetail {
   int id;
   String tthNo;
+  String ttoTTPNo;
   String jenis;
-  String qty;
+  int qty;
   String unit;
 
   CustomerTTHDetail({
     required this.id,
     required this.tthNo,
+    required this.ttoTTPNo,
     required this.jenis,
     required this.qty,
     required this.unit,
@@ -15,11 +17,12 @@ class CustomerTTHDetail {
 
   factory CustomerTTHDetail.fromJson(Map<String, dynamic> json) {
     return CustomerTTHDetail(
-      id: json['id'],
-      tthNo: json['tthNo'],
-      jenis: json['jenis'],
-      qty: json['qty'],
-      unit: json['unit'],
+      id: json['ID'],
+      tthNo: json['TTHNo'],
+      ttoTTPNo: json['TTOTTPNo'],
+      jenis: json['Jenis'],
+      qty: json['Qty'],
+      unit: json['Unit'],
     );
   }
 }

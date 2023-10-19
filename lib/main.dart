@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:test_flutter_tirtakencana/models/customer.dart';
+import 'package:test_flutter_tirtakencana/models/customer_tth.dart';
+import 'package:test_flutter_tirtakencana/models/customer_tth_detail.dart';
+import 'package:test_flutter_tirtakencana/models/mobile_config.dart';
+import 'package:test_flutter_tirtakencana/services/api_services.dart';
 import 'package:test_flutter_tirtakencana/services/customer_service.dart';
+import 'package:test_flutter_tirtakencana/services/customer_tth_detail_service.dart';
+import 'package:test_flutter_tirtakencana/services/customer_tth_service.dart';
+import 'package:test_flutter_tirtakencana/services/mobile_config_service.dart';
 import 'package:test_flutter_tirtakencana/utils/color.dart';
 import 'package:test_flutter_tirtakencana/widgets/card_toko.dart';
 import 'package:test_flutter_tirtakencana/widgets/dialog_konfirmasi.dart';
@@ -12,27 +19,143 @@ void main() {
   runApp(
     const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: MyApp(),
+      home: Scaffold(body: FetchData()),
     ),
   );
 }
 
+class FetchData extends StatefulWidget {
+  const FetchData({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  State<FetchData> createState() => _FetchDataState();
+}
+
+class _FetchDataState extends State<FetchData> {
+  late Future<List<Customer>> futureCustomer;
+  late Future<List<CustomerTTH>> futureCustomerTTH;
+  late Future<List<CustomerTTHDetail>> futureCustomerTTHDetail;
+  late Future<List<MobileConfig>> futureMobileConfig;
+
+  @override
+  void initState() {
+    super.initState();
+    // futureData = APIServices().getAllData();
+    futureCustomer = CustomerService().getCustomers();
+    futureCustomerTTH = CustomerTTHService().getCustomerTTHs();
+    futureCustomerTTHDetail =
+        CustomerTTHDetailService().getCustomerTTHDetails();
+    futureMobileConfig = MobileConfigService().getMobileConfigs();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    //customer
+    return FutureBuilder(
+      future: futureCustomer,
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          List<Customer> customers = snapshot.data!;
+          return FutureBuilder(
+            future: futureCustomerTTH,
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                List<CustomerTTH> customerTTHs = snapshot.data!;
+                return FutureBuilder(
+                  future: futureCustomerTTHDetail,
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      List<CustomerTTHDetail> customerTTHDetails =
+                          snapshot.data!;
+
+                      return FutureBuilder(
+                        future: futureMobileConfig,
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData) {
+                            List<MobileConfig> mobileConfigs = snapshot.data!;
+                            return MyApp(
+                              customers: customers,
+                              customerTTHs: customerTTHs,
+                              customerTTHDetails: customerTTHDetails,
+                              mobileConfigs: mobileConfigs,
+                            );
+                          } else if (snapshot.hasError) {
+                            return Center(
+                              child: TextWidget(str: snapshot.error.toString()),
+                            );
+                          }
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        },
+                      );
+                    } else if (snapshot.hasError) {
+                      return Center(
+                        child: TextWidget(str: snapshot.error.toString()),
+                      );
+                    }
+                    return const Center(child: CircularProgressIndicator());
+                  },
+                );
+              } else if (snapshot.hasError) {
+                return Center(
+                  child: TextWidget(str: snapshot.error.toString()),
+                );
+              }
+              return const Center(child: CircularProgressIndicator());
+            },
+          );
+        } else if (snapshot.hasError) {
+          return Center(
+            child: TextWidget(str: snapshot.error.toString()),
+          );
+        }
+        return const Center(child: CircularProgressIndicator());
+      },
+    );
+  }
+}
+
 class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+  final List<Customer> customers;
+  final List<CustomerTTH> customerTTHs;
+  final List<CustomerTTHDetail> customerTTHDetails;
+  final List<MobileConfig> mobileConfigs;
+
+  const MyApp({
+    Key? key,
+    required this.customers,
+    required this.customerTTHs,
+    required this.customerTTHDetails,
+    required this.mobileConfigs,
+  }) : super(key: key);
 
   @override
   State<MyApp> createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
-  // This widget is the root of your application.
-  late Future<List<Customer>> futureCustomer;
-  String? filterValue;
+  List<Customer> customers = [];
+  List<CustomerTTH> customerTTHs = [];
+  List<CustomerTTHDetail> customerTTHDetails = [];
+  List<MobileConfig> mobileConfigs = [];
+
+  List<String> filterOptions = [];
+  String filterValue = '';
 
   @override
   void initState() {
     super.initState();
-    futureCustomer = CustomerService().getCustomers();
+
+    customers = widget.customers;
+    customerTTHs = widget.customerTTHs;
+    customerTTHDetails = widget.customerTTHDetails;
+    mobileConfigs = widget.mobileConfigs;
+
+    filterOptions = customers.map((e) => e.name).toList();
+    filterOptions.insert(0, 'Semua Toko');
+    filterValue = filterOptions[0];
   }
 
   @override
@@ -60,61 +183,44 @@ class _MyAppState extends State<MyApp> {
                       ),
                     ),
                   ),
-                  child: FutureBuilder<List<Customer>>(
-                      future: futureCustomer,
-                      builder: (context, snapshot) {
-                        if (snapshot.hasData) {
-                          List<Customer> customers = snapshot.data!;
-                          List<String> customerNames =
-                              customers.map((e) => e.name).toList();
-                          customerNames.insert(0, 'Semua Toko');
-
-                          return DropdownButtonHideUnderline(
-                            child: DropdownButton(
-                              value: filterValue ?? customerNames[0],
-                              items: customerNames.map((option) {
-                                return DropdownMenuItem(
-                                  value: option,
-                                  child: Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(4.0),
-                                        decoration: const BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: ColorHelpers.grey,
-                                        ),
-                                        child: const Icon(
-                                          Icons.home,
-                                          color: ColorHelpers.white,
-                                          size: 14,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8.0),
-                                      Text(
-                                        option,
-                                        style: const TextStyle(
-                                          color: ColorHelpers.grey,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              }).toList(),
-                              onChanged: (String? newValue) {
-                                setState(() {
-                                  filterValue = newValue!;
-                                });
-                              },
-                            ),
-                          );
-                        } else if (snapshot.hasError) {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: TextWidget(str: snapshot.error.toString()),
-                          ));
-                          return Container();
-                        }
-                        return const Center(child: CircularProgressIndicator());
-                      }),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton(
+                      value: filterValue,
+                      items: filterOptions.map((option) {
+                        return DropdownMenuItem(
+                          value: option,
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(4.0),
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: ColorHelpers.grey,
+                                ),
+                                child: const Icon(
+                                  Icons.home,
+                                  color: ColorHelpers.white,
+                                  size: 14,
+                                ),
+                              ),
+                              const SizedBox(width: 8.0),
+                              Text(
+                                option,
+                                style: const TextStyle(
+                                  color: ColorHelpers.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          filterValue = newValue!;
+                        });
+                      },
+                    ),
+                  ),
                 ),
               ),
 
