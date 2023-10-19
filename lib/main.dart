@@ -160,6 +160,21 @@ class _MyAppState extends State<MyApp> {
     filterValue = filterOptions[0];
   }
 
+  String getStatusCustomer(Customer customer) {
+    CustomerTTH customerTTH =
+        customerTTHs.firstWhere((element) => element.custId == customer.custId);
+
+    if (customerTTH.receivedDate == "") {
+      return "Belum Diberikan";
+    } else {
+      if (customerTTH.received == 0) {
+        return "Gagal Diterima";
+      }
+
+      return "Sudah Diterima";
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -279,7 +294,7 @@ class _MyAppState extends State<MyApp> {
                               color: ColorHelpers.white,
                               fontSize: FontSizeHelper.title,
                             ),
-                            const SizedBox(height: 4.0),
+                            const SizedBox(height: 8.0),
                             TextWidget(
                               str: customers[index].address,
                               color: ColorHelpers.white,
@@ -294,11 +309,11 @@ class _MyAppState extends State<MyApp> {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           TextWidget(
-                            str: 'status',
+                            str: getStatusCustomer(customers[index]),
                             color: ColorHelpers.white,
                             fontSize: FontSizeHelper.title,
                           ),
-                          const SizedBox(height: 4.0),
+                          const SizedBox(height: 8.0),
                           TextWidget(
                             str: customers[index].phoneNo,
                             color: ColorHelpers.white,
