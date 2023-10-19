@@ -1,11 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:test_flutter_tirtakencana/models/customer_tth_detail.dart';
 import 'package:test_flutter_tirtakencana/utils/color.dart';
 import 'package:test_flutter_tirtakencana/utils/font_size.dart';
 import 'package:test_flutter_tirtakencana/utils/font_weight.dart';
+import 'package:test_flutter_tirtakencana/widgets/list_gift_qty.dart';
 import 'package:test_flutter_tirtakencana/widgets/partials/text.dart';
 
 class DialogTotalHadiah extends StatelessWidget {
-  const DialogTotalHadiah({super.key});
+  final List<String> giftTypes;
+  final List<CustomerTTHDetail> customerTTHDetails;
+
+  const DialogTotalHadiah({
+    required this.giftTypes,
+    required this.customerTTHDetails,
+    Key? key,
+  }) : super(key: key);
+
+  List<Map<String, dynamic>> getListOfGifts() {
+    return giftTypes.map((giftType) {
+      int qty = customerTTHDetails
+          .where((element) => element.jenis == giftType)
+          .fold(0, (sum, element) => sum + element.qty);
+
+      return {
+        'giftType': giftType,
+        'qty': qty,
+        'unit': giftType.contains('Emas') ? 'Buah' : 'Lembar',
+      };
+    }).toList();
+  }
+
+  int getTotalGift() {
+    return customerTTHDetails.fold(0, (sum, element) => sum + element.qty);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -70,44 +97,16 @@ class DialogTotalHadiah extends StatelessWidget {
             ),
 
             //content
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: Container(
-                padding: const EdgeInsets.all(4.0),
-                decoration: BoxDecoration(
-                  color: ColorHelpers.appBarBtn,
-                  shape: BoxShape.rectangle,
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                child: const Icon(
-                  Icons.card_giftcard,
-                  color: ColorHelpers.white,
-                ),
-              ),
-              title: const Row(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  TextWidget(
-                    str: 'Emas 25 Gr',
-                    color: ColorHelpers.black,
-                  ),
-                  Row(
-                    children: [
-                      TextWidget(
-                        str: '2',
-                        color: ColorHelpers.primary,
-                        fontWeight: FontWeightHelpers.bold,
-                      ),
-                      SizedBox(width: 16.0),
-                      TextWidget(
-                        str: 'Buah',
-                        color: ColorHelpers.black,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (Map<String, dynamic> gift in getListOfGifts())
+                  ListGiftQtyWidget(
+                    giftType: gift['giftType'],
+                    qty: gift['qty'],
+                    unit: gift['unit'],
+                  )
+              ],
             ),
 
             const Divider(
@@ -116,20 +115,22 @@ class DialogTotalHadiah extends StatelessWidget {
             ),
 
             //footer
-            const Row(
+            Row(
               mainAxisSize: MainAxisSize.max,
               // crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 TextWidget(
-                  str: '2',
+                  str: getTotalGift().toString(),
                   color: ColorHelpers.primary,
                   fontWeight: FontWeightHelpers.bold,
+                  fontSize: FontSizeHelper.title,
                 ),
-                SizedBox(width: 16.0),
-                TextWidget(
+                const SizedBox(width: 16.0),
+                const TextWidget(
                   str: 'Hadiah',
                   color: ColorHelpers.black,
+                  fontSize: FontSizeHelper.title,
                 ),
               ],
             ),

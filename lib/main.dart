@@ -143,6 +143,8 @@ class _MyAppState extends State<MyApp> {
   List<CustomerTTHDetail> customerTTHDetails = [];
   List<MobileConfig> mobileConfigs = [];
 
+  List<String> giftTypes = [];
+
   List<String> filterOptions = [];
   String filterValue = '';
 
@@ -154,6 +156,8 @@ class _MyAppState extends State<MyApp> {
     customerTTHs = widget.customerTTHs;
     customerTTHDetails = widget.customerTTHDetails;
     mobileConfigs = widget.mobileConfigs;
+
+    giftTypes = mobileConfigs.first.value.split('|');
 
     filterOptions = customers.map((e) => e.name).toList();
     filterOptions.insert(0, 'Semua Toko');
@@ -249,7 +253,10 @@ class _MyAppState extends State<MyApp> {
                   showDialog(
                     context: context,
                     builder: (BuildContext context) {
-                      return const DialogTotalHadiah();
+                      return DialogTotalHadiah(
+                        giftTypes: giftTypes,
+                        customerTTHDetails: customerTTHDetails,
+                      );
                       // return const DialogKonfirmasi();
                       // return const DialogKonfirmasiGagal();
                     },
