@@ -9,7 +9,9 @@ import 'package:test_flutter_tirtakencana/services/customer_tth_detail_service.d
 import 'package:test_flutter_tirtakencana/services/customer_tth_service.dart';
 import 'package:test_flutter_tirtakencana/services/mobile_config_service.dart';
 import 'package:test_flutter_tirtakencana/utils/color.dart';
-import 'package:test_flutter_tirtakencana/widgets/card_toko.dart';
+import 'package:test_flutter_tirtakencana/utils/font_size.dart';
+import 'package:test_flutter_tirtakencana/widgets/card_gift.dart';
+import 'package:test_flutter_tirtakencana/widgets/deprecated/card_toko.dart';
 import 'package:test_flutter_tirtakencana/widgets/dialog_konfirmasi.dart';
 import 'package:test_flutter_tirtakencana/widgets/dialog_konfirmasi_gagal.dart';
 import 'package:test_flutter_tirtakencana/widgets/dialog_total_hadiah.dart';
@@ -252,7 +254,92 @@ class _MyAppState extends State<MyApp> {
           ),
         ),
       ),
-      body: const CardTokoWidget(),
+      body: ListView.separated(
+        itemBuilder: (context, index) {
+          return Container(
+            color: ColorHelpers.primary,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                //header
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 8.0),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            TextWidget(
+                              str: customers[index].name,
+                              color: ColorHelpers.white,
+                              fontSize: FontSizeHelper.title,
+                            ),
+                            const SizedBox(height: 4.0),
+                            TextWidget(
+                              str: customers[index].address,
+                              color: ColorHelpers.white,
+                              fontSize: FontSizeHelper.subtitle,
+                              icon: Icons.location_on_outlined,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 16.0),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          TextWidget(
+                            str: 'status',
+                            color: ColorHelpers.white,
+                            fontSize: FontSizeHelper.title,
+                          ),
+                          const SizedBox(height: 4.0),
+                          TextWidget(
+                            str: customers[index].phoneNo,
+                            color: ColorHelpers.white,
+                            fontSize: FontSizeHelper.subtitle,
+                            icon: Icons.phone,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                //list
+                Container(
+                  padding: const EdgeInsets.all(16.0),
+                  decoration: const BoxDecoration(
+                    color: ColorHelpers.background,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(24.0),
+                      topRight: Radius.circular(24.0),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      for (CustomerTTH customerTTH in customerTTHs.where(
+                          (element) =>
+                              element.custId == customers[index].custId))
+                        CardGiftWidget(customerTTH: customerTTH)
+                      // const SizedBox(height: 36.0),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+        itemCount: customers.length,
+        separatorBuilder: (context, index) {
+          return Container();
+        },
+      ),
     );
   }
 }
