@@ -1,13 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:test_flutter_tirtakencana/main.dart';
+import 'package:test_flutter_tirtakencana/models/customer.dart';
+import 'package:test_flutter_tirtakencana/services/customer_service.dart';
 import 'package:test_flutter_tirtakencana/utils/color.dart';
 import 'package:test_flutter_tirtakencana/utils/font_size.dart';
 import 'package:test_flutter_tirtakencana/utils/font_weight.dart';
+import 'package:test_flutter_tirtakencana/widgets/dialog_konfirmasi_gagal.dart';
 import 'package:test_flutter_tirtakencana/widgets/partials/button.dart';
 import 'package:test_flutter_tirtakencana/widgets/partials/button_outlined.dart';
 import 'package:test_flutter_tirtakencana/widgets/partials/text.dart';
 
 class DialogKonfirmasi extends StatelessWidget {
-  const DialogKonfirmasi({super.key});
+  final Customer customer;
+
+  const DialogKonfirmasi({
+    Key? key,
+    required this.customer,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -53,13 +62,30 @@ class DialogKonfirmasi extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ButtonOutlinedWidget(
-                  onPressed: () {},
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return DialogKonfirmasiGagal(customer: customer);
+                      },
+                    );
+                  },
                   btnText: 'TIDAK',
                   borderColor: ColorHelpers.primary,
                   textColor: ColorHelpers.black,
                 ),
                 ButtonWidget(
-                  onPressed: () {},
+                  onPressed: () async {
+                    await CustomerService().updateCustomer(customer, 1, 'true');
+
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => FetchData(),
+                      ),
+                      (route) => false,
+                    );
+                  },
                   btnText: 'YA SUDAH TERIMA',
                   btnColor: ColorHelpers.primary,
                 ),

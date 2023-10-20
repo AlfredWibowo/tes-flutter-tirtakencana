@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:test_flutter_tirtakencana/main.dart';
+import 'package:test_flutter_tirtakencana/models/customer.dart';
+import 'package:test_flutter_tirtakencana/services/customer_service.dart';
 import 'package:test_flutter_tirtakencana/utils/color.dart';
 import 'package:test_flutter_tirtakencana/utils/font_size.dart';
 import 'package:test_flutter_tirtakencana/utils/font_weight.dart';
@@ -7,7 +10,12 @@ import 'package:test_flutter_tirtakencana/widgets/partials/button_outlined.dart'
 import 'package:test_flutter_tirtakencana/widgets/partials/text.dart';
 
 class DialogKonfirmasiGagal extends StatefulWidget {
-  const DialogKonfirmasiGagal({super.key});
+  final Customer customer;
+
+  const DialogKonfirmasiGagal({
+    Key? key,
+    required this.customer,
+  }) : super(key: key);
 
   @override
   State<DialogKonfirmasiGagal> createState() => _DialogKonfirmasiGagalState();
@@ -106,14 +114,31 @@ class _DialogKonfirmasiGagalState extends State<DialogKonfirmasiGagal> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ButtonOutlinedWidget(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
                   btnText: 'BATAL',
                   borderColor: ColorHelpers.primary,
                   textColor: ColorHelpers.black,
                   icon: Icons.close,
                 ),
                 ButtonWidget(
-                  onPressed: () {},
+                  onPressed: () async {
+                    if (reasonValue == 'Pilih Alasan') {
+                      return;
+                    }
+
+                    await CustomerService()
+                        .updateCustomer(widget.customer, 0, reasonValue);
+
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => FetchData(),
+                      ),
+                      (route) => false,
+                    );
+                  },
                   btnText: 'SIMPAN',
                   btnColor: ColorHelpers.primary,
                   icon: Icons.check_circle_outline,

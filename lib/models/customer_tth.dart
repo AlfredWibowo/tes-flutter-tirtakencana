@@ -1,3 +1,5 @@
+import 'package:test_flutter_tirtakencana/models/customer_tth_detail.dart';
+
 class CustomerTTH {
   int id;
   String tthNo;
@@ -8,6 +10,7 @@ class CustomerTTH {
   int received;
   String receivedDate;
   String failedReason;
+  CustomerTTHDetail customerTTHDetail;
 
   CustomerTTH({
     required this.id,
@@ -19,6 +22,7 @@ class CustomerTTH {
     required this.received,
     required this.receivedDate,
     required this.failedReason,
+    required this.customerTTHDetail,
   });
 
   factory CustomerTTH.fromJson(Map<String, dynamic> json) {
@@ -32,6 +36,7 @@ class CustomerTTH {
       received: json['Received'],
       receivedDate: json['ReceivedDate'],
       failedReason: json['FailedReason'],
+      customerTTHDetail: CustomerTTHDetail.fromJson(json['CustomerTTHDetail']),
     );
   }
 }

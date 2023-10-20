@@ -1,19 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:test_flutter_tirtakencana/models/customer.dart';
 import 'package:test_flutter_tirtakencana/models/customer_tth.dart';
-import 'package:test_flutter_tirtakencana/models/customer_tth_detail.dart';
 import 'package:test_flutter_tirtakencana/models/mobile_config.dart';
-import 'package:test_flutter_tirtakencana/services/api_services.dart';
 import 'package:test_flutter_tirtakencana/services/customer_service.dart';
-import 'package:test_flutter_tirtakencana/services/customer_tth_detail_service.dart';
-import 'package:test_flutter_tirtakencana/services/customer_tth_service.dart';
 import 'package:test_flutter_tirtakencana/services/mobile_config_service.dart';
 import 'package:test_flutter_tirtakencana/utils/color.dart';
 import 'package:test_flutter_tirtakencana/utils/font_size.dart';
 import 'package:test_flutter_tirtakencana/widgets/card_gift.dart';
-import 'package:test_flutter_tirtakencana/widgets/deprecated/card_toko.dart';
 import 'package:test_flutter_tirtakencana/widgets/dialog_konfirmasi.dart';
-import 'package:test_flutter_tirtakencana/widgets/dialog_konfirmasi_gagal.dart';
 import 'package:test_flutter_tirtakencana/widgets/dialog_total_hadiah.dart';
 import 'package:test_flutter_tirtakencana/widgets/partials/text.dart';
 
@@ -36,69 +30,23 @@ class FetchData extends StatefulWidget {
 }
 
 class _FetchDataState extends State<FetchData> {
-  late Future<List<Customer>> futureCustomer;
-  late Future<List<CustomerTTH>> futureCustomerTTH;
-  late Future<List<CustomerTTHDetail>> futureCustomerTTHDetail;
-  late Future<List<MobileConfig>> futureMobileConfig;
-
-  @override
-  void initState() {
-    super.initState();
-    // futureData = APIServices().getAllData();
-    futureCustomer = CustomerService().getCustomers();
-    futureCustomerTTH = CustomerTTHService().getCustomerTTHs();
-    futureCustomerTTHDetail =
-        CustomerTTHDetailService().getCustomerTTHDetails();
-    futureMobileConfig = MobileConfigService().getMobileConfigs();
-  }
-
   @override
   Widget build(BuildContext context) {
-    //customer
     return FutureBuilder(
-      future: futureCustomer,
+      future: CustomerService().getCustomers(),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
           List<Customer> customers = snapshot.data!;
+
           return FutureBuilder(
-            future: futureCustomerTTH,
+            future: MobileConfigService().getMobileConfigs(),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
-                List<CustomerTTH> customerTTHs = snapshot.data!;
-                return FutureBuilder(
-                  future: futureCustomerTTHDetail,
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData) {
-                      List<CustomerTTHDetail> customerTTHDetails =
-                          snapshot.data!;
+                List<MobileConfig> mobileConfigs = snapshot.data!;
 
-                      return FutureBuilder(
-                        future: futureMobileConfig,
-                        builder: (context, snapshot) {
-                          if (snapshot.hasData) {
-                            List<MobileConfig> mobileConfigs = snapshot.data!;
-                            return MyApp(
-                              customers: customers,
-                              customerTTHs: customerTTHs,
-                              customerTTHDetails: customerTTHDetails,
-                              mobileConfigs: mobileConfigs,
-                            );
-                          } else if (snapshot.hasError) {
-                            return Center(
-                              child: TextWidget(str: snapshot.error.toString()),
-                            );
-                          }
-                          return const Center(
-                              child: CircularProgressIndicator());
-                        },
-                      );
-                    } else if (snapshot.hasError) {
-                      return Center(
-                        child: TextWidget(str: snapshot.error.toString()),
-                      );
-                    }
-                    return const Center(child: CircularProgressIndicator());
-                  },
+                return MyApp(
+                  customers: customers,
+                  mobileConfigs: mobileConfigs,
                 );
               } else if (snapshot.hasError) {
                 return Center(
@@ -121,15 +69,11 @@ class _FetchDataState extends State<FetchData> {
 
 class MyApp extends StatefulWidget {
   final List<Customer> customers;
-  final List<CustomerTTH> customerTTHs;
-  final List<CustomerTTHDetail> customerTTHDetails;
   final List<MobileConfig> mobileConfigs;
 
   const MyApp({
     Key? key,
     required this.customers,
-    required this.customerTTHs,
-    required this.customerTTHDetails,
     required this.mobileConfigs,
   }) : super(key: key);
 
@@ -139,34 +83,35 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   List<Customer> customers = [];
-  List<CustomerTTH> customerTTHs = [];
-  List<CustomerTTHDetail> customerTTHDetails = [];
   List<MobileConfig> mobileConfigs = [];
 
   List<String> giftTypes = [];
 
-  List<String> filterOptions = [];
+  // List<String> filterOptions.name = [];
+  // String filterValue = '';
   String filterValue = '';
+  List<String> filterOptions = [];
+
+  List<Customer> filteredCustomers = [];
 
   @override
   void initState() {
     super.initState();
 
     customers = widget.customers;
-    customerTTHs = widget.customerTTHs;
-    customerTTHDetails = widget.customerTTHDetails;
     mobileConfigs = widget.mobileConfigs;
 
     giftTypes = mobileConfigs.first.value.split('|');
 
     filterOptions = customers.map((e) => e.name).toList();
     filterOptions.insert(0, 'Semua Toko');
-    filterValue = filterOptions[0];
+    filterValue = filterOptions.first;
+
+    filteredCustomers = customers;
   }
 
   String getStatusCustomer(Customer customer) {
-    CustomerTTH customerTTH =
-        customerTTHs.firstWhere((element) => element.custId == customer.custId);
+    CustomerTTH customerTTH = customer.customerTTHs.first;
 
     if (customerTTH.receivedDate == "") {
       return "Belum Diberikan";
@@ -238,6 +183,14 @@ class _MyAppState extends State<MyApp> {
                       onChanged: (String? newValue) {
                         setState(() {
                           filterValue = newValue!;
+
+                          if (filterValue == 'Semua Toko') {
+                            filteredCustomers = customers;
+                          } else {
+                            filteredCustomers = customers
+                                .where((element) => element.name == filterValue)
+                                .toList();
+                          }
                         });
                       },
                     ),
@@ -252,13 +205,11 @@ class _MyAppState extends State<MyApp> {
                 onPressed: () {
                   showDialog(
                     context: context,
-                    builder: (BuildContext context) {
+                    builder: (context) {
                       return DialogTotalHadiah(
                         giftTypes: giftTypes,
-                        customerTTHDetails: customerTTHDetails,
+                        customers: filteredCustomers,
                       );
-                      // return const DialogKonfirmasi();
-                      // return const DialogKonfirmasiGagal();
                     },
                   );
                 },
@@ -278,86 +229,99 @@ class _MyAppState extends State<MyApp> {
       ),
       body: ListView.separated(
         itemBuilder: (context, index) {
-          return Container(
-            color: ColorHelpers.primary,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                //header
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0, vertical: 8.0),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.max,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+          return GestureDetector(
+            onTap: () {
+              if (getStatusCustomer(filteredCustomers[index]) ==
+                  "Sudah Diterima") {
+                return;
+              }
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return DialogKonfirmasi(customer: filteredCustomers[index]);
+                },
+              );
+            },
+            child: Container(
+              color: ColorHelpers.primary,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  //header
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0, vertical: 8.0),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              TextWidget(
+                                str: filteredCustomers[index].name,
+                                color: ColorHelpers.white,
+                                fontSize: FontSizeHelper.title,
+                              ),
+                              const SizedBox(height: 8.0),
+                              TextWidget(
+                                str: filteredCustomers[index].address,
+                                color: ColorHelpers.white,
+                                fontSize: FontSizeHelper.subtitle,
+                                icon: Icons.location_on_outlined,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 16.0),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             TextWidget(
-                              str: customers[index].name,
+                              str: getStatusCustomer(filteredCustomers[index]),
                               color: ColorHelpers.white,
                               fontSize: FontSizeHelper.title,
                             ),
                             const SizedBox(height: 8.0),
                             TextWidget(
-                              str: customers[index].address,
+                              str: filteredCustomers[index].phoneNo,
                               color: ColorHelpers.white,
                               fontSize: FontSizeHelper.subtitle,
-                              icon: Icons.location_on_outlined,
+                              icon: Icons.phone,
                             ),
                           ],
                         ),
-                      ),
-                      const SizedBox(width: 16.0),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          TextWidget(
-                            str: getStatusCustomer(customers[index]),
-                            color: ColorHelpers.white,
-                            fontSize: FontSizeHelper.title,
-                          ),
-                          const SizedBox(height: 8.0),
-                          TextWidget(
-                            str: customers[index].phoneNo,
-                            color: ColorHelpers.white,
-                            fontSize: FontSizeHelper.subtitle,
-                            icon: Icons.phone,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-
-                //list
-                Container(
-                  padding: const EdgeInsets.all(16.0),
-                  decoration: const BoxDecoration(
-                    color: ColorHelpers.background,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(24.0),
-                      topRight: Radius.circular(24.0),
+                      ],
                     ),
                   ),
-                  child: Column(
-                    children: [
-                      for (CustomerTTH customerTTH in customerTTHs.where(
-                          (element) =>
-                              element.custId == customers[index].custId))
-                        CardGiftWidget(customerTTH: customerTTH)
-                      // const SizedBox(height: 36.0),
-                    ],
+
+                  //list
+                  Container(
+                    padding: const EdgeInsets.all(16.0),
+                    decoration: const BoxDecoration(
+                      color: ColorHelpers.background,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(24.0),
+                        topRight: Radius.circular(24.0),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        for (CustomerTTH customerTTH
+                            in filteredCustomers[index].customerTTHs)
+                          CardGiftWidget(customerTTH: customerTTH),
+                        const SizedBox(height: 36.0),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           );
         },
-        itemCount: customers.length,
+        itemCount: filteredCustomers.length,
         separatorBuilder: (context, index) {
           return Container();
         },

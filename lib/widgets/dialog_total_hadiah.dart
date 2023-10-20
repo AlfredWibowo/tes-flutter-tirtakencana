@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:test_flutter_tirtakencana/models/customer_tth_detail.dart';
+import 'package:test_flutter_tirtakencana/models/customer.dart';
 import 'package:test_flutter_tirtakencana/utils/color.dart';
 import 'package:test_flutter_tirtakencana/utils/font_size.dart';
 import 'package:test_flutter_tirtakencana/utils/font_weight.dart';
@@ -8,19 +8,25 @@ import 'package:test_flutter_tirtakencana/widgets/partials/text.dart';
 
 class DialogTotalHadiah extends StatelessWidget {
   final List<String> giftTypes;
-  final List<CustomerTTHDetail> customerTTHDetails;
+  final List<Customer> customers;
 
   const DialogTotalHadiah({
-    required this.giftTypes,
-    required this.customerTTHDetails,
     Key? key,
+    required this.giftTypes,
+    required this.customers,
   }) : super(key: key);
 
   List<Map<String, dynamic>> getListOfGifts() {
     return giftTypes.map((giftType) {
-      int qty = customerTTHDetails
-          .where((element) => element.jenis == giftType)
-          .fold(0, (sum, element) => sum + element.qty);
+      int qty = 0;
+
+      for (var customer in customers) {
+        for (var customerTTH in customer.customerTTHs) {
+          if (customerTTH.customerTTHDetail.jenis == giftType) {
+            qty += customerTTH.customerTTHDetail.qty;
+          }
+        }
+      }
 
       return {
         'giftType': giftType,
@@ -31,7 +37,10 @@ class DialogTotalHadiah extends StatelessWidget {
   }
 
   int getTotalGift() {
-    return customerTTHDetails.fold(0, (sum, element) => sum + element.qty);
+    return getListOfGifts()
+        .map((gift) => gift['qty'])
+        .toList()
+        .reduce((value, element) => value + element);
   }
 
   @override
