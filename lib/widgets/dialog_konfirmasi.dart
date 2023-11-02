@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:test_flutter_tirtakencana/controllers/customer_controller.dart';
 import 'package:test_flutter_tirtakencana/main.dart';
 import 'package:test_flutter_tirtakencana/models/customer.dart';
 import 'package:test_flutter_tirtakencana/services/customer_service.dart';
@@ -12,8 +14,9 @@ import 'package:test_flutter_tirtakencana/widgets/partials/text.dart';
 
 class DialogKonfirmasi extends StatelessWidget {
   final Customer customer;
+  CustomerController customerController = Get.find<CustomerController>();
 
-  const DialogKonfirmasi({
+  DialogKonfirmasi({
     Key? key,
     required this.customer,
   }) : super(key: key);
@@ -75,16 +78,9 @@ class DialogKonfirmasi extends StatelessWidget {
                   textColor: ColorHelpers.black,
                 ),
                 ButtonWidget(
-                  onPressed: () async {
-                    await CustomerService().updateCustomer(customer, 1, 'true');
-
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => FetchData(),
-                      ),
-                      (route) => false,
-                    );
+                  onPressed: () {
+                    customerController.updateData(customer, 1, 'true');
+                    Get.back();
                   },
                   btnText: 'YA SUDAH TERIMA',
                   btnColor: ColorHelpers.primary,
