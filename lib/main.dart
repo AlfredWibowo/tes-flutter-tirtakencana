@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:test_flutter_tirtakencana/controllers/customer_controller.dart';
+import 'package:test_flutter_tirtakencana/controllers/mobile_config_controller.dart';
 import 'package:test_flutter_tirtakencana/models/customer.dart';
 import 'package:test_flutter_tirtakencana/models/customer_tth.dart';
 import 'package:test_flutter_tirtakencana/models/mobile_config.dart';
@@ -13,7 +16,7 @@ import 'package:test_flutter_tirtakencana/widgets/partials/text.dart';
 
 void main() {
   runApp(
-    const MaterialApp(
+    const GetMaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(body: FetchData()),
     ),
@@ -30,40 +33,54 @@ class FetchData extends StatefulWidget {
 }
 
 class _FetchDataState extends State<FetchData> {
+  CustomerController customerController = Get.put(CustomerController());
+  MobileConfigController mobileConfigController =
+      Get.put(MobileConfigController());
+
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: CustomerService().getCustomers(),
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          List<Customer> customers = snapshot.data!;
-
-          return FutureBuilder(
-            future: MobileConfigService().getMobileConfigs(),
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                List<MobileConfig> mobileConfigs = snapshot.data!;
-
-                return MyApp(
-                  customers: customers,
-                  mobileConfigs: mobileConfigs,
-                );
-              } else if (snapshot.hasError) {
-                return Center(
-                  child: TextWidget(str: snapshot.error.toString()),
-                );
-              }
-              return const Center(child: CircularProgressIndicator());
-            },
-          );
-        } else if (snapshot.hasError) {
-          return Center(
-            child: TextWidget(str: snapshot.error.toString()),
-          );
-        }
-        return const Center(child: CircularProgressIndicator());
-      },
+    return Obx(
+      () => customerController.isLoading.value ||
+              mobileConfigController.isLoading.value
+          ? const Center(child: CircularProgressIndicator())
+          : MyApp(
+              customers: customerController.customers,
+              mobileConfigs: mobileConfigController.mobileConfigs,
+            ),
     );
+
+    // return FutureBuilder(
+    //   future: CustomerService().getCustomers(),
+    //   builder: (context, snapshot) {
+    //     if (snapshot.hasData) {
+    //       List<Customer> customers = snapshot.data!;
+
+    //       return FutureBuilder(
+    //         future: MobileConfigService().getMobileConfigs(),
+    //         builder: (context, snapshot) {
+    //           if (snapshot.hasData) {
+    //             List<MobileConfig> mobileConfigs = snapshot.data!;
+
+    //             return MyApp(
+    //               customers: customers,
+    //               mobileConfigs: mobileConfigs,
+    //             );
+    //           } else if (snapshot.hasError) {
+    //             return Center(
+    //               child: TextWidget(str: snapshot.error.toString()),
+    //             );
+    //           }
+    //           return const Center(child: CircularProgressIndicator());
+    //         },
+    //       );
+    //     } else if (snapshot.hasError) {
+    //       return Center(
+    //         child: TextWidget(str: snapshot.error.toString()),
+    //       );
+    //     }
+    //     return const Center(child: CircularProgressIndicator());
+    //   },
+    // );
   }
 }
 
