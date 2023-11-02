@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:test_flutter_tirtakencana/controllers/customer_controller.dart';
 import 'package:test_flutter_tirtakencana/main.dart';
 import 'package:test_flutter_tirtakencana/models/customer.dart';
 import 'package:test_flutter_tirtakencana/services/customer_service.dart';
@@ -30,6 +32,7 @@ class _DialogKonfirmasiGagalState extends State<DialogKonfirmasiGagal> {
 
   String reasonValue = 'Pilih Alasan';
 
+  CustomerController customerController = Get.find<CustomerController>();
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -115,7 +118,7 @@ class _DialogKonfirmasiGagalState extends State<DialogKonfirmasiGagal> {
               children: [
                 ButtonOutlinedWidget(
                   onPressed: () {
-                    Navigator.pop(context);
+                    Get.back();
                   },
                   btnText: 'BATAL',
                   borderColor: ColorHelpers.primary,
@@ -128,16 +131,9 @@ class _DialogKonfirmasiGagalState extends State<DialogKonfirmasiGagal> {
                       return;
                     }
 
-                    await CustomerService()
-                        .updateCustomer(widget.customer, 0, reasonValue);
-
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => FetchData(),
-                      ),
-                      (route) => false,
-                    );
+                    customerController.updateData(
+                        widget.customer, 0, reasonValue);
+                    Get.offAll(const FetchData());
                   },
                   btnText: 'SIMPAN',
                   btnColor: ColorHelpers.primary,
